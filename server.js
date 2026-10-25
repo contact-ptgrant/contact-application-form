@@ -12,12 +12,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/submit', (req, res) => {
     const { firstName, lastName, phone, email, preference } = req.body;
     const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
+    
+    // Get visitor's IP address (handles Render proxy headers)
+    const clientIp = req.headers['x-forwarded-for'] 
+        ? req.headers['x-forwarded-for'].split(',')[0].trim() 
+        : req.socket.remoteAddress;
 
     const entry = 
 `========================================
 PT-GRANT CONTACT SUBMISSION
 ========================================
 Date:                    ${timestamp}
+Visitor IP:              ${clientIp || 'Unknown'}
 First Name:              ${firstName || ''}
 Last Name:               ${lastName || ''}
 Phone Number:            ${phone || ''}
@@ -30,13 +36,12 @@ Preferred Contact Method:${preference || ''}
             console.error('Failed to write to submission.txt:', err);
             return res.status(500).json({ status: 'error', message: 'Failed to record entry.' });
         }
-        console.log(`New submission recorded for ${firstName} ${lastName}`);
+        console.log(`New submission recorded for ${firstName} ${lastName} from IP: ${clientIp}`);
         res.json({ status: 'success' });
     });
 });
 
-// Secret route to view all submissions in your browser
-// Replace 'my-secret-key-99' with your own custom password/key!
+// Secret route to view all entries in your browser
 app.get('/secret-view-entries-my-secret-key-99', (req, res) => {
     const filePath = path.join(__dirname, 'submission.txt');
     
