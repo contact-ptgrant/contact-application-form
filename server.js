@@ -5,14 +5,10 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse URL-encoded and JSON body data
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Serve static assets from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Handle form submission POST request
 app.post('/submit', (req, res) => {
     const { firstName, lastName, phone, email, preference } = req.body;
     const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
@@ -29,7 +25,6 @@ Email Address:           ${email || ''}
 Preferred Contact Method:${preference || ''}
 ========================================\n\n`;
 
-    // Append entry directly to submission.txt on the server
     fs.appendFile(path.join(__dirname, 'submission.txt'), entry, (err) => {
         if (err) {
             console.error('Failed to write to submission.txt:', err);
@@ -40,7 +35,22 @@ Preferred Contact Method:${preference || ''}
     });
 });
 
-// Fallback route to serve index.html
+// Secret route to view all submissions in your browser
+// Replace 'my-secret-key-99' with your own custom password/key!
+app.get('/secret-view-entries-my-secret-key-99', (req, res) => {
+    const filePath = path.join(__dirname, 'submission.txt');
+    
+    if (!fs.existsSync(filePath)) {
+        return res.send('<pre>No entries recorded yet.</pre>');
+    }
+
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) return res.status(500).send('Error reading entries.');
+        res.setHeader('Content-Type', 'text/plain');
+        res.send(data);
+    });
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
