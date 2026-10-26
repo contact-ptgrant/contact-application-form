@@ -2,14 +2,22 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---> PUT YOUR EXACT INFINITYFREE HTTP URL HERE <---
-const INFINITYFREE_URL = 'contact-application-form.42web.io';
+// IMPORTANT: Replace this EXACTLY with your InfinityFree web link!
+// DO NOT put your render.com link here!
+const TARGET_URL = 'contact-application-form.42web.io';
 
-// Server-level 302 Redirect (Bypasses HTTPS -> HTTP script blocks)
+// Handle incoming requests cleanly without creating a loop
 app.get('*', (req, res) => {
-    res.redirect(302, INFINITYFREE_URL);
+    // Prevent self-referencing loops
+    const host = req.headers.host || '';
+    if (TARGET_URL.includes(host)) {
+        return res.status(400).send('Error: Target URL cannot be the same as this domain.');
+    }
+    
+    // Perform 302 Found Redirect to InfinityFree
+    res.redirect(302, TARGET_URL);
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Redirect server running on port ${PORT}`);
 });
