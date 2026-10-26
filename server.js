@@ -11,18 +11,21 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Configure Email Transporter
-// Replace user and pass with your SMTP credentials (or environment variables)
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 465,
-    secure: true, // true for port 465, false for port 587
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: true, // true for port 465
     auth: {
-        user: process.env.SMTP_USER || 'your-sending-email@gmail.com',
-        pass: process.env.SMTP_PASS || 'your-app-password'
-    }
+        user: process.env.SMTP_USER || '',
+        pass: process.env.SMTP_PASS || ''
+    },
+    // Prevent server timeout hangs if email connection fails
+    connectionTimeout: 5000, 
+    greetingTimeout: 5000,
+    socketTimeout: 5000
 });
 
-app.post('/submit', async (req, res) => {
+app.post('/submit', (req, res) => {
     const { firstName, lastName, phone, email, preference } = req.body;
     const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' });
     
@@ -44,27 +47,28 @@ Email Address:           ${email || ''}
 Preferred Contact Method:${preference || ''}
 ========================================\n\n`;
 
-    // 1. Append entry locally to submission.txt
+    // 1. Save entry to submission.txt first
     fs.appendFile(path.join(__dirname, 'submission.txt'), entryText, (err) => {
         if (err) console.error('Failed to write to submission.txt:', err);
     });
 
-    // 2. Send entry directly to your email inbox
-    const mailOptions = {
-        from: `"PT-Grant Forms" <${process.env.SMTP_USER || 'your-sending-email@gmail.com'}>`,
-        to: 'contact-ptgrant@proton.me',
-        subject: `New PT-Grant Form Submission from ${firstName} ${lastName}`,
-        text: entryText
-    };
+    // 2. Return SUCCESS immediately to the website visitor so it never hangs
+    res.json({ status: 'success' });
 
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Email successfully sent to contact-ptgrant@proton.me for ${firstName} ${lastName}`);
-        res.json({ status: 'success' });
-    } catch (error) {
-        console.error('Error sending email notification:', error);
-        // Still return success to the user so form user experience is uninterrupted
-        res.json({ status: 'success', note: 'Saved locally, email dispatch pending configuration' });
+    // 3. Send email notification in background
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        const mailOptions = {
+            from: `"PT-Grant Forms" <${process.env.SMTP_USER}>`,
+            to: 'contact-ptgrant@proton.me',
+            subject: `New PT-Grant Form Submission from ${firstName} ${lastName}`,
+            text: entryText
+        };
+
+        transporter.sendMail(mailOptions)
+            .then(() => console.log(`Email successfully sent to contact-ptgrant@proton.me for ${firstName} ${lastName}`))
+            .catch((error) => console.error('Email dispatch failed (Check Render Environment SMTP_USER/SMTP_PASS):', error.message));
+    } else {
+        console.warn('SMTP_USER or SMTP_PASS not set in Environment variables. Skipping email dispatch.');
     }
 });
 
