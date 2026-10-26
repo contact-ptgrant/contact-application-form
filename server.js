@@ -3,7 +3,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ---> PUT YOUR EXACT INFINITYFREE LINK HERE <---
-const INFINITYFREE_URL = 'http://YOUR-INFINITYFREE-DOMAIN.infinityfreeapp.com';
+const INFINITYFREE_URL = 'contact-application-form.42web.io';
 
 app.get('*', (req, res) => {
     res.send(`
